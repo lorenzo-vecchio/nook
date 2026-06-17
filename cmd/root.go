@@ -8,10 +8,13 @@ import (
 	_ "github.com/lorenzo-vecchio/nook/provider"
 )
 
+var Version = "dev"
+
 var rootCmd = &cobra.Command{
-	Use:   "nook",
-	Short: "Workspace organizer CLI for developers",
-	Long:  "Nook is a CLI tool to organize and launch project workspaces with a single command.",
+	Use:     "nook",
+	Short:   "Workspace organizer CLI for developers",
+	Long:    "Nook is a CLI tool to organize and launch project workspaces with a single command.",
+	Version: Version,
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		_, err := config.LoadGlobalConfig()
 		return err
