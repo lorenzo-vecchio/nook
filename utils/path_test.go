@@ -26,8 +26,9 @@ func TestExpandPathPlain(t *testing.T) {
 }
 
 func TestResolvePathAbsolute(t *testing.T) {
-	result := ResolvePath("/some/base", "/absolute/path")
-	assert.Equal(t, filepath.Clean("/absolute/path"), result)
+	absPath := filepath.Join(t.TempDir(), "absolute", "path")
+	result := ResolvePath("/some/base", absPath)
+	assert.Equal(t, filepath.Clean(absPath), result)
 }
 
 func TestResolvePathRelative(t *testing.T) {

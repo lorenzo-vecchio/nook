@@ -53,6 +53,9 @@ func TestChromeProvider_LaunchCmdStartFails(t *testing.T) {
 }
 
 func TestChromeProvider_LaunchAutoDetect(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("PATH manipulation breaks cmd.exe on Windows")
+	}
 	var captures []struct {
 		name string
 		args []string
@@ -201,8 +204,8 @@ func TestChromeCommand(t *testing.T) {
 
 	if runtime.GOOS == "windows" {
 		cmd := chromeCommand(ctx, "", "https://example.com")
-		assert.Equal(t, "cmd", cmd.Path)
-		assert.Equal(t, []string{"cmd", "/c", "start", "chrome", "https://example.com"}, cmd.Args)
+		assert.Equal(t, "cmd.exe", filepath.Base(cmd.Path))
+		assert.Equal(t, []string{filepath.Base(cmd.Path), "/c", "start", "chrome", "https://example.com"}, cmd.Args)
 	} else {
 		cmd := chromeCommand(ctx, "/usr/bin/google-chrome", "https://example.com")
 		assert.Equal(t, "/usr/bin/google-chrome", cmd.Path)

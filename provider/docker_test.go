@@ -107,13 +107,15 @@ func TestDockerProvider_LaunchAbsolutePath(t *testing.T) {
 
 	p := &DockerProvider{}
 
+	absFile := filepath.Join(t.TempDir(), "docker-compose.yml")
+
 	svc := config.Service{
 		Provider: "docker",
-		File:     "/etc/nook/docker-compose.yml",
+		File:     absFile,
 	}
 
 	err := p.Launch(context.Background(), svc, "/tmp/base", nil)
 	require.NoError(t, err)
 
-	assert.Equal(t, []string{"compose", "-f", filepath.Clean("/etc/nook/docker-compose.yml"), "up", "-d"}, capturedArgs)
+	assert.Equal(t, []string{"compose", "-f", filepath.Clean(absFile), "up", "-d"}, capturedArgs)
 }
