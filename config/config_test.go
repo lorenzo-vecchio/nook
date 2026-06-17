@@ -115,3 +115,60 @@ func TestXdgPathResolution(t *testing.T) {
 	cfgPath := filepath.Join(xdg.ConfigHome, "nook", "config.yaml")
 	assert.Equal(t, expected, cfgPath)
 }
+
+func TestConfigDirPath_WithXDGConfigHome(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	path := configDirPath()
+	assert.Equal(t, filepath.Join(dir, "nook"), path)
+}
+
+func TestConfigDirPath_DefaultPath(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", "")
+	path := configDirPath()
+	assert.Equal(t, "nook", filepath.Base(path))
+}
+
+func TestExpandTilde_NoTilde(t *testing.T) {
+	result := expandTilde("/absolute/path")
+	assert.Equal(t, "/absolute/path", result)
+}
+
+func TestExpandTilde_TildeOnly(t *testing.T) {
+	result := expandTilde("~")
+	assert.Equal(t, "~", result)
+}
+
+func TestLoadGlobalConfig_MkdirAllFails(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	err := os.WriteFile(filepath.Join(dir, "nook"), []byte("file in the way"), 0644)
+	require.NoError(t, err)
+	_, err = LoadGlobalConfig()
+	assert.Error(t, err)
+}
+
+func TestLoadGlobalConfig_ReadPermissionDenied(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	nookDir := filepath.Join(dir, "nook")
+	err := os.MkdirAll(nookDir, 0755)
+	require.NoError(t, err)
+	cfgPath := filepath.Join(nookDir, "config.yaml")
+	err = os.WriteFile(cfgPath, []byte("scan_paths:\n  - /path\n"), 0644)
+	require.NoError(t, err)
+	err = os.Chmod(cfgPath, 0)
+	require.NoError(t, err)
+	_, err = LoadGlobalConfig()
+	assert.Error(t, err)
+}
+
+func TestSaveGlobalConfig_MkdirAllFails(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	err := os.WriteFile(filepath.Join(dir, "nook"), []byte("file in the way"), 0644)
+	require.NoError(t, err)
+	cfg := &GlobalConfig{ScanPaths: []string{"/a"}}
+	err = SaveGlobalConfig(cfg)
+	assert.Error(t, err)
+}

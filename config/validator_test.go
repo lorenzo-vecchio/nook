@@ -177,3 +177,58 @@ func TestValidate_NilInput(t *testing.T) {
 	err := Validate(nil)
 	assert.Error(t, err)
 }
+
+type testCustomTag struct {
+	Field string `validate:"eq=hello"`
+}
+
+func TestValidate_DefaultCase(t *testing.T) {
+	v := testCustomTag{Field: "world"}
+	err := Validate(v)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Field failed validation: eq")
+}
+
+func TestValidate_NonStructInput(t *testing.T) {
+	err := Validate("not a struct")
+	assert.Error(t, err)
+}
+
+func TestValidate_OneofTag(t *testing.T) {
+	ws := &WorkspaceConfig{
+		Name: "test",
+		Environments: map[string]Environment{
+			"dev": {
+				Services: []Service{
+					{Provider: "invalid", Folder: "/path"},
+				},
+			},
+		},
+	}
+	err := Validate(ws)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "must be one of")
+	assert.Contains(t, err.Error(), "Provider")
+}
+
+type testMaxTag struct {
+	Name string `validate:"max=3"`
+}
+
+func TestValidate_MaxTag(t *testing.T) {
+	v := testMaxTag{Name: "toolong"}
+	err := Validate(v)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "must be at most")
+}
+
+type testMinTag struct {
+	Name string `validate:"min=5"`
+}
+
+func TestValidate_MinTag(t *testing.T) {
+	v := testMinTag{Name: "x"}
+	err := Validate(v)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "must be at least")
+}

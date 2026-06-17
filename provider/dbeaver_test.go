@@ -2,7 +2,10 @@ package provider
 
 import (
 	"context"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/anomalyco/nook/config"
@@ -47,6 +50,68 @@ func TestDBeaverProvider_Launch(t *testing.T) {
 }
 
 func TestDBeaverProvider_FindPath(t *testing.T) {
+	p := &DBeaverProvider{}
+	path := p.findDBeaverPath()
+	assert.Contains(t, path, "dbeaver")
+}
+
+func TestDBeaverCommonPaths(t *testing.T) {
+	paths := dbeaverCommonPaths()
+	if runtime.GOOS == "darwin" {
+		require.Len(t, paths, 1)
+		assert.Contains(t, paths[0], "DBeaver.app")
+	}
+}
+
+func TestDBeaverProvider_DetectInPath(t *testing.T) {
+	savedPath := os.Getenv("PATH")
+	defer os.Setenv("PATH", savedPath)
+
+	tmpDir := t.TempDir()
+	dbeaverPath := filepath.Join(tmpDir, "dbeaver")
+	err := os.WriteFile(dbeaverPath, []byte("#!/bin/sh\necho dbeaver"), 0755)
+	require.NoError(t, err)
+
+	os.Setenv("PATH", tmpDir)
+
+	p := &DBeaverProvider{}
+	found, err := p.Detect()
+	assert.NoError(t, err)
+	assert.True(t, found)
+}
+
+func TestDBeaverProvider_FindPathInLookPath(t *testing.T) {
+	savedPath := os.Getenv("PATH")
+	defer os.Setenv("PATH", savedPath)
+
+	tmpDir := t.TempDir()
+	dbeaverPath := filepath.Join(tmpDir, "dbeaver")
+	err := os.WriteFile(dbeaverPath, []byte("#!/bin/sh\necho dbeaver"), 0755)
+	require.NoError(t, err)
+
+	os.Setenv("PATH", tmpDir)
+
+	p := &DBeaverProvider{}
+	path := p.findDBeaverPath()
+	assert.Equal(t, dbeaverPath, path)
+}
+
+func TestDBeaverProvider_DetectNotFound(t *testing.T) {
+	savedPath := os.Getenv("PATH")
+	os.Setenv("PATH", "")
+	defer os.Setenv("PATH", savedPath)
+
+	p := &DBeaverProvider{}
+	found, err := p.Detect()
+	assert.NoError(t, err)
+	t.Logf("dbeaver detected (with empty PATH): %v", found)
+}
+
+func TestDBeaverProvider_FindPathNoLookPath(t *testing.T) {
+	savedPath := os.Getenv("PATH")
+	os.Setenv("PATH", "")
+	defer os.Setenv("PATH", savedPath)
+
 	p := &DBeaverProvider{}
 	path := p.findDBeaverPath()
 	assert.Contains(t, path, "dbeaver")

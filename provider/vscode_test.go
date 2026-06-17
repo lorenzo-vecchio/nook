@@ -128,6 +128,109 @@ func TestVSCodeProvider_GenerateWorkspaceFile(t *testing.T) {
 	assert.Empty(t, ws.Tasks.Tasks[0].ProblemMatcher)
 }
 
+func TestVSCodeCommonPaths(t *testing.T) {
+	paths := vscodeCommonPaths()
+	assert.NotEmpty(t, paths)
+}
+
+func TestVSCodeProvider_DetectNotFound(t *testing.T) {
+	savedPath := os.Getenv("PATH")
+	os.Setenv("PATH", "")
+	defer os.Setenv("PATH", savedPath)
+
+	p := &VSCodeProvider{}
+	found, err := p.Detect()
+	assert.NoError(t, err)
+	t.Logf("vscode detected (with empty PATH): %v", found)
+}
+
+func TestVSCodeProvider_GenerateWorkspaceFileEnsureDirFails(t *testing.T) {
+	p := &VSCodeProvider{}
+	tmpDir := t.TempDir()
+
+	filePath := filepath.Join(tmpDir, ".workspace")
+	err := os.WriteFile(filePath, []byte(""), 0644)
+	require.NoError(t, err)
+
+	projectDir := filepath.Join(tmpDir, "myproject")
+	err = os.MkdirAll(projectDir, 0755)
+	require.NoError(t, err)
+
+	terminals := []config.Terminal{
+		{Name: "dev", Directory: ".", Command: "npm run dev"},
+	}
+
+	_, err = p.generateWorkspaceFile(projectDir, terminals, tmpDir)
+	assert.Error(t, err)
+}
+
+func TestVSCodeProvider_LaunchWithTerminalsGenerateWSFails(t *testing.T) {
+	saved := execCommandContext
+	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
+		return exec.CommandContext(ctx, "/bin/echo", arg...)
+	}
+	defer func() { execCommandContext = saved }()
+
+	p := &VSCodeProvider{}
+	tmpDir := t.TempDir()
+
+	filePath := filepath.Join(tmpDir, ".workspace")
+	err := os.WriteFile(filePath, []byte(""), 0644)
+	require.NoError(t, err)
+
+	svc := config.Service{
+		Provider: "vscode",
+		Folder:   "myproject",
+		Terminals: []config.Terminal{
+			{Name: "dev", Directory: ".", Command: "npm run dev"},
+		},
+	}
+
+	projectDir := filepath.Join(tmpDir, "myproject")
+	err = os.MkdirAll(projectDir, 0755)
+	require.NoError(t, err)
+
+	err = p.Launch(context.Background(), svc, tmpDir, nil)
+	assert.Error(t, err)
+}
+
+func TestVSCodeProvider_GenerateWorkspaceFileWriteFails(t *testing.T) {
+	p := &VSCodeProvider{}
+	tmpDir := t.TempDir()
+
+	projectDir := filepath.Join(tmpDir, "myproject")
+	err := os.MkdirAll(projectDir, 0755)
+	require.NoError(t, err)
+
+	wsDir := filepath.Join(tmpDir, ".workspace")
+	err = os.MkdirAll(wsDir, 0555)
+	require.NoError(t, err)
+
+	terminals := []config.Terminal{
+		{Name: "dev", Directory: ".", Command: "npm run dev"},
+	}
+
+	_, err = p.generateWorkspaceFile(projectDir, terminals, tmpDir)
+	assert.Error(t, err)
+}
+
+func TestVSCodeProvider_DetectCodeInsiders(t *testing.T) {
+	savedPath := os.Getenv("PATH")
+	defer os.Setenv("PATH", savedPath)
+
+	tmpDir := t.TempDir()
+	codeInsidersPath := filepath.Join(tmpDir, "code-insiders")
+	err := os.WriteFile(codeInsidersPath, []byte("#!/bin/sh\necho code-insiders"), 0755)
+	require.NoError(t, err)
+
+	os.Setenv("PATH", tmpDir)
+
+	p := &VSCodeProvider{}
+	found, err := p.Detect()
+	assert.NoError(t, err)
+	assert.True(t, found)
+}
+
 func TestVSCodeProvider_GenerateWorkspaceFileTerminalNoCommand(t *testing.T) {
 	p := &VSCodeProvider{}
 	tmpDir := t.TempDir()

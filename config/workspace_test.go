@@ -125,6 +125,18 @@ func TestSaveAndReloadCycle(t *testing.T) {
 	assert.Equal(t, ws.Environments["staging"].Services[0].Cmd, loaded.Environments["staging"].Services[0].Cmd)
 }
 
+func TestSaveWorkspace_WriteFails(t *testing.T) {
+	dir := t.TempDir()
+	err := os.Chmod(dir, 0555)
+	require.NoError(t, err)
+	defer func() { _ = os.Chmod(dir, 0755) }()
+
+	ws := validWorkspace()
+	wsPath := filepath.Join(dir, "workspace.yaml")
+	err = SaveWorkspace(ws, wsPath)
+	assert.Error(t, err)
+}
+
 func TestWorkspace_WithTerminals(t *testing.T) {
 	ws := &WorkspaceConfig{
 		Name: "term-test",

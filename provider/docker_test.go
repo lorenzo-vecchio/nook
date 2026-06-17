@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"testing"
 
@@ -73,6 +74,25 @@ func TestDockerProvider_LaunchWithProfile(t *testing.T) {
 
 	assert.Equal(t, "docker", capturedName)
 	assert.Equal(t, []string{"compose", "-f", tmpDir + "/compose.prod.yml", "--profile", "production", "up", "-d"}, capturedArgs)
+}
+
+func TestDockerProvider_DetectNotFound(t *testing.T) {
+	savedPath := os.Getenv("PATH")
+	os.Setenv("PATH", "")
+	defer os.Setenv("PATH", savedPath)
+
+	p := &DockerProvider{}
+	found, err := p.Detect()
+	assert.NoError(t, err)
+	assert.False(t, found)
+}
+
+func TestDockerProvider_LaunchNoFile(t *testing.T) {
+	p := &DockerProvider{}
+	svc := config.Service{Provider: "docker"}
+	err := p.Launch(context.Background(), svc, "", nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "file is required")
 }
 
 func TestDockerProvider_LaunchAbsolutePath(t *testing.T) {
