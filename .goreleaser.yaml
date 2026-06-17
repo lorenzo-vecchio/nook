@@ -30,7 +30,7 @@ archives:
 brews:
   - repository:
       owner: lorenzo-vecchio
-      name: homebrew-nook
+      name: nook
     folder: Formula
     homepage: "https://github.com/lorenzo-vecchio/nook"
     description: "Workspace organizer CLI for developers"
@@ -38,7 +38,7 @@ brews:
 scoop:
   - repository:
       owner: lorenzo-vecchio
-      name: scoop-nook
+      name: nook
     homepage: "https://github.com/lorenzo-vecchio/nook"
     description: "Workspace organizer CLI for developers"
 

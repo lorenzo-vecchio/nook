@@ -7,13 +7,13 @@ Workspace organizer CLI for developers. Launch all your project tools with a sin
 ### macOS / Linux
 
 ```bash
-brew install lorenzo-vecchio/tap/nook
+brew install lorenzo-vecchio/nook/nook
 ```
 
 ### Windows (Scoop)
 
 ```powershell
-scoop bucket add lorenzo-vecchio https://github.com/lorenzo-vecchio/scoop-nook
+scoop bucket add nook https://github.com/lorenzo-vecchio/nook
 scoop install nook
 ```
 
