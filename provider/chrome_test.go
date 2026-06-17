@@ -85,8 +85,13 @@ func TestChromeProvider_LaunchAutoDetect(t *testing.T) {
 	}
 
 	require.Len(t, captures, 1)
-	if runtime.GOOS != "windows" {
+	switch {
+	case runtime.GOOS == "darwin":
 		assert.Contains(t, captures[0].name, "Google Chrome")
+	case runtime.GOOS == "linux":
+		assert.Contains(t, captures[0].name, "google-chrome")
+	case runtime.GOOS == "windows":
+		assert.Equal(t, "cmd", captures[0].name)
 	}
 }
 
