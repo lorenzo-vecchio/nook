@@ -1,9 +1,11 @@
 module github.com/lorenzo-vecchio/nook
 
-go 1.26.2
+go 1.25.0
 
 require (
+	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/adrg/xdg v0.5.3
+	github.com/fatih/color v1.19.0
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/joho/godotenv v1.5.1
 	github.com/spf13/cobra v1.10.2
@@ -12,9 +14,7 @@ require (
 )
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.7 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/fatih/color v1.19.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.13 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
