@@ -1,0 +1,21 @@
+{
+    "version": "0.1.0",
+    "description": "Workspace organizer CLI for developers",
+    "homepage": "https://github.com/anomalyco/nook",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/anomalyco/nook/releases/download/v0.1.0/nook-windows-amd64.zip",
+            "hash": "PLACEHOLDER"
+        }
+    },
+    "bin": "nook.exe",
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/anomalyco/nook/releases/download/v$version/nook-windows-amd64.zip"
+            }
+        }
+    }
+}
