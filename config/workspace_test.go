@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -126,6 +127,9 @@ func TestSaveAndReloadCycle(t *testing.T) {
 }
 
 func TestSaveWorkspace_WriteFails(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("chmod not supported on Windows")
+	}
 	dir := t.TempDir()
 	err := os.Chmod(dir, 0555)
 	require.NoError(t, err)

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/lorenzo-vecchio/nook/config"
@@ -32,7 +33,7 @@ func TestVSCodeProvider_LaunchNoTerminals(t *testing.T) {
 	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
 		capturedName = name
 		capturedArgs = arg
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -60,7 +61,7 @@ func TestVSCodeProvider_LaunchWithTerminals(t *testing.T) {
 	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
 		capturedName = name
 		capturedArgs = arg
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -167,7 +168,7 @@ func TestVSCodeProvider_GenerateWorkspaceFileEnsureDirFails(t *testing.T) {
 func TestVSCodeProvider_LaunchWithTerminalsGenerateWSFails(t *testing.T) {
 	saved := execCommandContext
 	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -195,6 +196,9 @@ func TestVSCodeProvider_LaunchWithTerminalsGenerateWSFails(t *testing.T) {
 }
 
 func TestVSCodeProvider_GenerateWorkspaceFileWriteFails(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping on Windows")
+	}
 	p := &VSCodeProvider{}
 	tmpDir := t.TempDir()
 
@@ -215,6 +219,9 @@ func TestVSCodeProvider_GenerateWorkspaceFileWriteFails(t *testing.T) {
 }
 
 func TestVSCodeProvider_DetectCodeInsiders(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping on Windows")
+	}
 	savedPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", savedPath)
 

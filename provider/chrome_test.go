@@ -63,7 +63,7 @@ func TestChromeProvider_LaunchAutoDetect(t *testing.T) {
 			name string
 			args []string
 		}{name, arg})
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -106,7 +106,7 @@ func TestChromeProvider_Launch(t *testing.T) {
 			name string
 			args []string
 		}{name, arg})
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -138,7 +138,7 @@ func TestChromeProvider_Launch(t *testing.T) {
 func TestChromeProvider_LaunchNoURLs(t *testing.T) {
 	saved := execCommandContext
 	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -150,6 +150,9 @@ func TestChromeProvider_LaunchNoURLs(t *testing.T) {
 }
 
 func TestChromeProvider_DetectAlternativeBinaryName(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping on Windows")
+	}
 	savedPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", savedPath)
 

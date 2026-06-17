@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 
 	"github.com/lorenzo-vecchio/nook/config"
@@ -30,7 +31,7 @@ func TestDockerProvider_Launch(t *testing.T) {
 	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
 		capturedName = name
 		capturedArgs = arg
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -46,7 +47,7 @@ func TestDockerProvider_Launch(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "docker", capturedName)
-	assert.Equal(t, []string{"compose", "-f", tmpDir + "/docker-compose.yml", "up", "-d"}, capturedArgs)
+	assert.Equal(t, []string{"compose", "-f", filepath.Join(tmpDir, "docker-compose.yml"), "up", "-d"}, capturedArgs)
 }
 
 func TestDockerProvider_LaunchWithProfile(t *testing.T) {
@@ -56,7 +57,7 @@ func TestDockerProvider_LaunchWithProfile(t *testing.T) {
 	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
 		capturedName = name
 		capturedArgs = arg
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -73,7 +74,7 @@ func TestDockerProvider_LaunchWithProfile(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "docker", capturedName)
-	assert.Equal(t, []string{"compose", "-f", tmpDir + "/compose.prod.yml", "--profile", "production", "up", "-d"}, capturedArgs)
+	assert.Equal(t, []string{"compose", "-f", filepath.Join(tmpDir, "compose.prod.yml"), "--profile", "production", "up", "-d"}, capturedArgs)
 }
 
 func TestDockerProvider_DetectNotFound(t *testing.T) {
@@ -100,7 +101,7 @@ func TestDockerProvider_LaunchAbsolutePath(t *testing.T) {
 	saved := execCommandContext
 	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
 		capturedArgs = arg
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -114,5 +115,5 @@ func TestDockerProvider_LaunchAbsolutePath(t *testing.T) {
 	err := p.Launch(context.Background(), svc, "/tmp/base", nil)
 	require.NoError(t, err)
 
-	assert.Equal(t, []string{"compose", "-f", "/etc/nook/docker-compose.yml", "up", "-d"}, capturedArgs)
+	assert.Equal(t, []string{"compose", "-f", filepath.Clean("/etc/nook/docker-compose.yml"), "up", "-d"}, capturedArgs)
 }

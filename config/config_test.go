@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/adrg/xdg"
@@ -149,6 +150,9 @@ func TestLoadGlobalConfig_MkdirAllFails(t *testing.T) {
 }
 
 func TestLoadGlobalConfig_ReadPermissionDenied(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("chmod not supported on Windows")
+	}
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)
 	nookDir := filepath.Join(dir, "nook")

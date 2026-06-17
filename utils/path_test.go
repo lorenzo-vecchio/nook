@@ -27,12 +27,12 @@ func TestExpandPathPlain(t *testing.T) {
 
 func TestResolvePathAbsolute(t *testing.T) {
 	result := ResolvePath("/some/base", "/absolute/path")
-	assert.Equal(t, "/absolute/path", result)
+	assert.Equal(t, filepath.Clean("/absolute/path"), result)
 }
 
 func TestResolvePathRelative(t *testing.T) {
 	result := ResolvePath("/base/dir", "relative/path")
-	assert.Equal(t, "/base/dir/relative/path", result)
+	assert.Equal(t, filepath.Join("/base/dir", "relative/path"), result)
 }
 
 func TestResolvePathWithDotSlash(t *testing.T) {

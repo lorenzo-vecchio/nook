@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/lorenzo-vecchio/nook/config"
@@ -29,9 +30,17 @@ func TestServiceTypeToProvider(t *testing.T) {
 	}
 }
 
+func setHomeEnv(t *testing.T, homeDir string) {
+	t.Helper()
+	t.Setenv("HOME", homeDir)
+	if runtime.GOOS == "windows" {
+		t.Setenv("USERPROFILE", homeDir)
+	}
+}
+
 func TestInitCmd_CreatesWorkspace(t *testing.T) {
 	homeDir := t.TempDir()
-	t.Setenv("HOME", homeDir)
+	setHomeEnv(t, homeDir)
 
 	inputCalls := 0
 	confirmCalls := 0
@@ -106,7 +115,7 @@ func TestInitCmd_CreatesWorkspace(t *testing.T) {
 
 func TestInitCmd_CreatesWorkspace_WithDBeaverDockerCommand(t *testing.T) {
 	homeDir := t.TempDir()
-	t.Setenv("HOME", homeDir)
+	setHomeEnv(t, homeDir)
 
 	inputCalls := 0
 	confirmCalls := 0
@@ -173,7 +182,7 @@ func TestInitCmd_CreatesWorkspace_WithDBeaverDockerCommand(t *testing.T) {
 
 func TestInitCmd_ValidationFailure(t *testing.T) {
 	homeDir := t.TempDir()
-	t.Setenv("HOME", homeDir)
+	setHomeEnv(t, homeDir)
 
 	inputCalls := 0
 	confirmCalls := 0

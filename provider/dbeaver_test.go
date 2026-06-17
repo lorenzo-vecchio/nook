@@ -32,7 +32,7 @@ func TestDBeaverProvider_Launch(t *testing.T) {
 	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
 		capturedName = name
 		capturedArgs = arg
-		return exec.CommandContext(ctx, "/bin/echo", arg...)
+		return testCmd(ctx, arg...)
 	}
 	defer func() { execCommandContext = saved }()
 
@@ -64,6 +64,9 @@ func TestDBeaverCommonPaths(t *testing.T) {
 }
 
 func TestDBeaverProvider_DetectInPath(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping on Windows")
+	}
 	savedPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", savedPath)
 
@@ -81,6 +84,9 @@ func TestDBeaverProvider_DetectInPath(t *testing.T) {
 }
 
 func TestDBeaverProvider_FindPathInLookPath(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping on Windows")
+	}
 	savedPath := os.Getenv("PATH")
 	defer os.Setenv("PATH", savedPath)
 

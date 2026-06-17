@@ -176,7 +176,8 @@ func TestTrustPath_AddsPathToConfig(t *testing.T) {
 
 	cfg, err = config.LoadGlobalConfig()
 	require.NoError(t, err)
-	assert.Contains(t, cfg.ScanPaths, "/new/trusted/path")
+	expected, _ := filepath.Abs("/new/trusted/path")
+	assert.Contains(t, cfg.ScanPaths, expected)
 }
 
 func TestScanCurrentDir_DirNamedWorkspaceYAML(t *testing.T) {
@@ -210,9 +211,10 @@ func TestTrustPath_DuplicatePath(t *testing.T) {
 
 	cfg, err := config.LoadGlobalConfig()
 	require.NoError(t, err)
+	expected, _ := filepath.Abs("/some/path")
 	n := 0
 	for _, p := range cfg.ScanPaths {
-		if p == "/some/path" {
+		if p == expected {
 			n++
 		}
 	}
