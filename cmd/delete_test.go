@@ -12,8 +12,10 @@ import (
 )
 
 type mockPrompter struct {
-	selectFn   func(label string, options []string, defaultOption string) (string, error)
-	confirmFn  func(label string, defaultVal bool) (bool, error)
+	selectFn      func(label string, options []string, defaultOption string) (string, error)
+	multiSelectFn func(label string, options []string, defaults []string) ([]string, error)
+	inputFn       func(label string, defaultVal string) (string, error)
+	confirmFn     func(label string, defaultVal bool) (bool, error)
 }
 
 func (m *mockPrompter) Select(label string, options []string, defaultOption string) (string, error) {
@@ -24,10 +26,16 @@ func (m *mockPrompter) Select(label string, options []string, defaultOption stri
 }
 
 func (m *mockPrompter) MultiSelect(label string, options []string, defaults []string) ([]string, error) {
+	if m.multiSelectFn != nil {
+		return m.multiSelectFn(label, options, defaults)
+	}
 	return nil, nil
 }
 
 func (m *mockPrompter) Input(label string, defaultVal string) (string, error) {
+	if m.inputFn != nil {
+		return m.inputFn(label, defaultVal)
+	}
 	return "", nil
 }
 

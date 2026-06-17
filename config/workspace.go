@@ -20,7 +20,7 @@ type Environment struct {
 type Service struct {
 	Provider   string     `yaml:"provider" validate:"required,oneof=vscode dbeaver chrome docker command"`
 	Folder     string     `yaml:"folder,omitempty"`
-	Terminals  []Terminal `yaml:"terminals,omitempty"`
+	Terminals  []Terminal `yaml:"terminals,omitempty" validate:"omitempty,dive"`
 	Connection string     `yaml:"connection,omitempty"`
 	URLs       []string   `yaml:"urls,omitempty"`
 	File       string     `yaml:"file,omitempty"`

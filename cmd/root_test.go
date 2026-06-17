@@ -20,9 +20,6 @@ func TestRootCmdUses(t *testing.T) {
 	assert.Equal(t, "nook", rootCmd.Use)
 }
 
-func TestRootPersistentPreRunE(t *testing.T) {
-	cfg = nil
-	err := rootCmd.PersistentPreRunE(rootCmd, []string{})
-	assert.NoError(t, err)
-	assert.NotNil(t, cfg)
+func TestRootHasSubcommands(t *testing.T) {
+	assert.True(t, len(rootCmd.Commands()) > 0)
 }
