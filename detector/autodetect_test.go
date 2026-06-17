@@ -29,7 +29,7 @@ func TestScanCurrentDir_NoWorkspaceYAML(t *testing.T) {
 	origWd, _ := os.Getwd()
 	err := os.Chdir(dir)
 	require.NoError(t, err)
-	defer os.Chdir(origWd)
+	defer func() { _ = os.Chdir(origWd) }()
 
 	result, err := ScanCurrentDir()
 	require.NoError(t, err)
@@ -47,7 +47,7 @@ func TestScanCurrentDir_WorkspaceInCWD(t *testing.T) {
 	origWd, _ := os.Getwd()
 	err = os.Chdir(realDir)
 	require.NoError(t, err)
-	defer os.Chdir(origWd)
+	defer func() { _ = os.Chdir(origWd) }()
 
 	result, err := ScanCurrentDir()
 	require.NoError(t, err)
@@ -72,7 +72,7 @@ func TestScanCurrentDir_WorkspaceInSubdir(t *testing.T) {
 	origWd, _ := os.Getwd()
 	err = os.Chdir(realDir)
 	require.NoError(t, err)
-	defer os.Chdir(origWd)
+	defer func() { _ = os.Chdir(origWd) }()
 
 	result, err := ScanCurrentDir()
 	require.NoError(t, err)
@@ -98,7 +98,7 @@ func TestScanCurrentDir_WorkspaceInBoth(t *testing.T) {
 	origWd, _ := os.Getwd()
 	err = os.Chdir(realDir)
 	require.NoError(t, err)
-	defer os.Chdir(origWd)
+	defer func() { _ = os.Chdir(origWd) }()
 
 	result, err := ScanCurrentDir()
 	require.NoError(t, err)
@@ -190,7 +190,7 @@ func TestScanCurrentDir_DirNamedWorkspaceYAML(t *testing.T) {
 	origWd, _ := os.Getwd()
 	err = os.Chdir(realDir)
 	require.NoError(t, err)
-	defer os.Chdir(origWd)
+	defer func() { _ = os.Chdir(origWd) }()
 
 	result, err := ScanCurrentDir()
 	require.NoError(t, err)
@@ -238,7 +238,7 @@ func TestScanCurrentDir_InvalidWorkspaceYAML(t *testing.T) {
 	origWd, _ := os.Getwd()
 	err = os.Chdir(realDir)
 	require.NoError(t, err)
-	defer os.Chdir(origWd)
+	defer func() { _ = os.Chdir(origWd) }()
 
 	_, err = ScanCurrentDir()
 	assert.Error(t, err)

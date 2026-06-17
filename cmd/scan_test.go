@@ -33,11 +33,11 @@ func TestScanCmd_NonExistentPath(t *testing.T) {
 	savedPaths := origCfg.ScanPaths
 	defer func() {
 		origCfg.ScanPaths = savedPaths
-		config.SaveGlobalConfig(origCfg)
+		_ = config.SaveGlobalConfig(origCfg)
 	}()
 
 	origCfg.ScanPaths = []string{"/tmp/nonexistent_scan_path_12345"}
-	config.SaveGlobalConfig(origCfg)
+	_ = config.SaveGlobalConfig(origCfg)
 
 	cmd := NewScanCmd()
 	cmd.SetArgs([]string{})
@@ -69,11 +69,11 @@ func TestScanCmd_WithWorkspace(t *testing.T) {
 	savedPaths := origCfg.ScanPaths
 	defer func() {
 		origCfg.ScanPaths = savedPaths
-		config.SaveGlobalConfig(origCfg)
+		_ = config.SaveGlobalConfig(origCfg)
 	}()
 
 	origCfg.ScanPaths = []string{tmpDir}
-	config.SaveGlobalConfig(origCfg)
+	_ = config.SaveGlobalConfig(origCfg)
 
 	cmd := NewScanCmd()
 	cmd.SetArgs([]string{})

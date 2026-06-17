@@ -6,5 +6,7 @@ var version = "dev"
 
 func main() {
 	cmd.Version = version
-	cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		panic(err)
+	}
 }
