@@ -1,6 +1,6 @@
 package main
 
-import "github.com/anomalyco/nook/cmd"
+import "github.com/lorenzo-vecchio/nook/cmd"
 
 func main() {
 	cmd.Execute()

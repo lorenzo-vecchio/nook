@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/anomalyco/nook/config"
+	"github.com/lorenzo-vecchio/nook/config"
 )
 
 func TestNewScanCmd(t *testing.T) {

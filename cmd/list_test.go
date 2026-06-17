@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/anomalyco/nook/config"
+	"github.com/lorenzo-vecchio/nook/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

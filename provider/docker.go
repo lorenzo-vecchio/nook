@@ -5,8 +5,8 @@ import (
 	"errors"
 	"os/exec"
 
-	"github.com/anomalyco/nook/config"
-	"github.com/anomalyco/nook/utils"
+	"github.com/lorenzo-vecchio/nook/config"
+	"github.com/lorenzo-vecchio/nook/utils"
 )
 
 type DockerProvider struct{}

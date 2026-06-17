@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/anomalyco/nook/config"
-	"github.com/anomalyco/nook/provider"
+	"github.com/lorenzo-vecchio/nook/config"
+	"github.com/lorenzo-vecchio/nook/provider"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

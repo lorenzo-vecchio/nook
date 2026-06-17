@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/anomalyco/nook/config"
-	"github.com/anomalyco/nook/tui"
-	"github.com/anomalyco/nook/utils"
+	"github.com/lorenzo-vecchio/nook/config"
+	"github.com/lorenzo-vecchio/nook/tui"
+	"github.com/lorenzo-vecchio/nook/utils"
 	"github.com/spf13/cobra"
 )
 

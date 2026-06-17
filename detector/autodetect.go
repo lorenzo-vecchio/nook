@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"slices"
 
-	"github.com/anomalyco/nook/config"
+	"github.com/lorenzo-vecchio/nook/config"
 )
 
 type WorkspaceInfo struct {

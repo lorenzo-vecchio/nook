@@ -29,17 +29,17 @@ archives:
 
 brews:
   - repository:
-      owner: anomalyco
+      owner: lorenzo-vecchio
       name: homebrew-nook
     folder: Formula
-    homepage: "https://github.com/anomalyco/nook"
+    homepage: "https://github.com/lorenzo-vecchio/nook"
     description: "Workspace organizer CLI for developers"
 
 scoop:
   - repository:
-      owner: anomalyco
+      owner: lorenzo-vecchio
       name: scoop-nook
-    homepage: "https://github.com/anomalyco/nook"
+    homepage: "https://github.com/lorenzo-vecchio/nook"
     description: "Workspace organizer CLI for developers"
 
 checksum:

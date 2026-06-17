@@ -1,4 +1,4 @@
-module github.com/anomalyco/nook
+module github.com/lorenzo-vecchio/nook
 
 go 1.26.2
 

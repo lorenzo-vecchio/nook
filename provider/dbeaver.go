@@ -6,8 +6,8 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/anomalyco/nook/config"
-	"github.com/anomalyco/nook/utils"
+	"github.com/lorenzo-vecchio/nook/config"
+	"github.com/lorenzo-vecchio/nook/utils"
 )
 
 type DBeaverProvider struct{}

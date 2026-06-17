@@ -8,10 +8,10 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/anomalyco/nook/config"
-	"github.com/anomalyco/nook/detector"
-	"github.com/anomalyco/nook/provider"
-	"github.com/anomalyco/nook/tui"
+	"github.com/lorenzo-vecchio/nook/config"
+	"github.com/lorenzo-vecchio/nook/detector"
+	"github.com/lorenzo-vecchio/nook/provider"
+	"github.com/lorenzo-vecchio/nook/tui"
 	"github.com/spf13/cobra"
 )
 

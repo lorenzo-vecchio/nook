@@ -4,10 +4,10 @@ PackageName: Nook
 Publisher: AnomalyCo
 License: MIT
 ShortDescription: Workspace organizer CLI for developers
-Homepage: https://github.com/anomalyco/nook
+Homepage: https://github.com/lorenzo-vecchio/nook
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/anomalyco/nook/releases/download/v0.1.0/nook-windows-amd64.zip
+    InstallerUrl: https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.0/nook-windows-amd64.zip
     InstallerSha256: PLACEHOLDER
     InstallerType: zip
     NestedInstallerType: portable

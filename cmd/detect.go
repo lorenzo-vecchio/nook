@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/anomalyco/nook/provider"
-	"github.com/anomalyco/nook/tui"
+	"github.com/lorenzo-vecchio/nook/provider"
+	"github.com/lorenzo-vecchio/nook/tui"
 	"github.com/spf13/cobra"
 )
 

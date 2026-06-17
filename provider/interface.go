@@ -3,7 +3,7 @@ package provider
 import (
 	"context"
 
-	"github.com/anomalyco/nook/config"
+	"github.com/lorenzo-vecchio/nook/config"
 )
 
 type Provider interface {

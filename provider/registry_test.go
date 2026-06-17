@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/anomalyco/nook/config"
+	"github.com/lorenzo-vecchio/nook/config"
 	"github.com/stretchr/testify/assert"
 )
 
