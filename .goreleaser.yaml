@@ -31,11 +31,11 @@ brews:
   - repository:
       owner: lorenzo-vecchio
       name: nook
-    folder: Formula
+    directory: Formula
     homepage: "https://github.com/lorenzo-vecchio/nook"
     description: "Workspace organizer CLI for developers"
 
-scoop:
+scoops:
   - repository:
       owner: lorenzo-vecchio
       name: nook
