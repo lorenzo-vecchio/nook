@@ -141,6 +141,81 @@ func TestSaveWorkspace_WriteFails(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestWorkspace_NewFieldsRoundTrip(t *testing.T) {
+	ws := &WorkspaceConfig{
+		Name: "launch-order-test",
+		Environments: map[string]Environment{
+			"dev": {
+				EnvFile: ".env.dev",
+				WaitForComposeHealthy: true,
+				Services: []Service{
+					{
+						Provider: "vscode",
+						Folder:   "/project",
+						Order:    1,
+						DelayMs:  500,
+					},
+					{
+						Provider:   "docker",
+						File:       "docker-compose.yml",
+						Order:     2,
+						DelayMs:   0,
+						ReadyCheck: &ReadyCheck{Cmd: "curl http://localhost:8080/health", IntervalMs: 1000, TimeoutMs: 30000},
+					},
+				},
+			},
+		},
+	}
+
+	dir := t.TempDir()
+	wsPath := filepath.Join(dir, "workspace.yaml")
+
+	err := SaveWorkspace(ws, wsPath)
+	require.NoError(t, err)
+
+	loaded, err := LoadWorkspace(wsPath)
+	require.NoError(t, err)
+	require.NotNil(t, loaded)
+
+	dev := loaded.Environments["dev"]
+	assert.True(t, dev.WaitForComposeHealthy)
+
+	svc0 := dev.Services[0]
+	assert.Equal(t, 1, svc0.Order)
+	assert.Equal(t, 500, svc0.DelayMs)
+	assert.Nil(t, svc0.ReadyCheck)
+
+	svc1 := dev.Services[1]
+	assert.Equal(t, 2, svc1.Order)
+	assert.Equal(t, 0, svc1.DelayMs)
+	require.NotNil(t, svc1.ReadyCheck)
+	assert.Equal(t, "curl http://localhost:8080/health", svc1.ReadyCheck.Cmd)
+	assert.Equal(t, 1000, svc1.ReadyCheck.IntervalMs)
+	assert.Equal(t, 30000, svc1.ReadyCheck.TimeoutMs)
+}
+
+func TestWorkspace_NewFieldsOmitempty(t *testing.T) {
+	ws := &WorkspaceConfig{
+		Name: "omitempty-test",
+		Environments: map[string]Environment{
+			"dev": {
+				Services: []Service{
+					{Provider: "chrome", Folder: "/p"},
+				},
+			},
+		},
+	}
+
+	data, err := yaml.Marshal(ws)
+	require.NoError(t, err)
+
+	yamlStr := string(data)
+	assert.NotContains(t, yamlStr, "delay_ms")
+	assert.NotContains(t, yamlStr, "order")
+	assert.NotContains(t, yamlStr, "ready_check")
+	assert.NotContains(t, yamlStr, "wait_for_compose_healthy")
+}
+
 func TestWorkspace_WithTerminals(t *testing.T) {
 	ws := &WorkspaceConfig{
 		Name: "term-test",

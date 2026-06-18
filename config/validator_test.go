@@ -173,6 +173,72 @@ func TestValidate_AllValidProviders(t *testing.T) {
 	}
 }
 
+func TestValidate_ValidReadyCheck(t *testing.T) {
+	ws := &WorkspaceConfig{
+		Name: "test",
+		Environments: map[string]Environment{
+			"dev": {
+				Services: []Service{
+					{
+						Provider:   "docker",
+						File:       "docker-compose.yml",
+						ReadyCheck: &ReadyCheck{Cmd: "curl http://localhost:8080/health"},
+					},
+				},
+			},
+		},
+	}
+	err := Validate(ws)
+	assert.NoError(t, err)
+}
+
+func TestValidate_ReadyCheckEmptyCmd(t *testing.T) {
+	ws := &WorkspaceConfig{
+		Name: "test",
+		Environments: map[string]Environment{
+			"dev": {
+				Services: []Service{
+					{
+						Provider:   "docker",
+						File:       "docker-compose.yml",
+						ReadyCheck: &ReadyCheck{},
+					},
+				},
+			},
+		},
+	}
+	err := Validate(ws)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Cmd")
+}
+
+func TestValidate_ServiceWithReadyCheckEmbedded(t *testing.T) {
+	ws := &WorkspaceConfig{
+		Name: "test",
+		Environments: map[string]Environment{
+			"staging": {
+				EnvFile: ".env.staging",
+				WaitForComposeHealthy: true,
+				Services: []Service{
+					{
+						Provider: "vscode",
+						Folder:   "/project",
+						Order:    1,
+					},
+					{
+						Provider:   "docker",
+						File:       "docker-compose.yml",
+						Order:     2,
+						ReadyCheck: &ReadyCheck{Cmd: "pg_isready"},
+					},
+				},
+			},
+		},
+	}
+	err := Validate(ws)
+	assert.NoError(t, err)
+}
+
 func TestValidate_NilInput(t *testing.T) {
 	err := Validate(nil)
 	assert.Error(t, err)

@@ -13,26 +13,36 @@ type WorkspaceConfig struct {
 }
 
 type Environment struct {
-	EnvFile  string    `yaml:"env_file"`
-	Services []Service `yaml:"services" validate:"required,min=1,dive"`
+	EnvFile              string    `yaml:"env_file"`
+	Services             []Service `yaml:"services" validate:"required,min=1,dive"`
+	WaitForComposeHealthy bool      `yaml:"wait_for_compose_healthy,omitempty"`
 }
 
 type Service struct {
-	Provider   string     `yaml:"provider" validate:"required,oneof=vscode dbeaver chrome docker command"`
-	Folder     string     `yaml:"folder,omitempty"`
-	Terminals  []Terminal `yaml:"terminals,omitempty" validate:"omitempty,dive"`
-	Connection string     `yaml:"connection,omitempty"`
-	URLs       []string   `yaml:"urls,omitempty"`
-	File       string     `yaml:"file,omitempty"`
-	Profile    string     `yaml:"profile,omitempty"`
-	Cmd        string     `yaml:"cmd,omitempty"`
-	Cwd        string     `yaml:"cwd,omitempty"`
+	Provider   string      `yaml:"provider" validate:"required,oneof=vscode dbeaver chrome docker command"`
+	Folder     string      `yaml:"folder,omitempty"`
+	Terminals  []Terminal  `yaml:"terminals,omitempty" validate:"omitempty,dive"`
+	Connection string      `yaml:"connection,omitempty"`
+	URLs       []string    `yaml:"urls,omitempty"`
+	File       string      `yaml:"file,omitempty"`
+	Profile    string      `yaml:"profile,omitempty"`
+	Cmd        string      `yaml:"cmd,omitempty"`
+	Cwd        string      `yaml:"cwd,omitempty"`
+	DelayMs    int         `yaml:"delay_ms,omitempty"`
+	ReadyCheck *ReadyCheck `yaml:"ready_check,omitempty" validate:"omitempty"`
+	Order      int         `yaml:"order,omitempty"`
 }
 
 type Terminal struct {
 	Name      string `yaml:"name" validate:"required"`
 	Directory string `yaml:"directory" validate:"required"`
 	Command   string `yaml:"command"`
+}
+
+type ReadyCheck struct {
+	Cmd        string `yaml:"cmd" validate:"required"`
+	IntervalMs int    `yaml:"interval_ms"`
+	TimeoutMs  int    `yaml:"timeout_ms"`
 }
 
 func LoadWorkspace(path string) (*WorkspaceConfig, error) {
