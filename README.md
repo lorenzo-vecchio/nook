@@ -164,6 +164,43 @@ Each environment maps to a set of services. At least one environment is required
 
 When `terminals` are configured for a VS Code service, nook generates a `.code-workspace` file in a `.workspace/` directory alongside the config. The generated file contains task definitions with `runOn: "folderOpen"` so terminals start automatically when VS Code opens the workspace. No extensions required.
 
+If the VS Code service has a `delay_ms`, a sleep is prepended to each terminal command (`sleep 3 && npm run dev`).
+
+### Launch ordering
+
+By default all services launch in parallel. Optionally, you can control the sequence:
+
+```yaml
+environments:
+  dev:
+    services:
+      - provider: docker
+        file: ./docker-compose.yml
+      - provider: vscode
+        folder: ./backend
+        order: 2
+        delay_ms: 3000
+      - provider: chrome
+        urls:
+          - http://localhost:3000
+        order: 3
+        ready_check:
+          cmd: "curl -sf http://localhost:3000/health"
+          interval_ms: 2000
+          timeout_ms: 30000
+```
+
+| Field | Description |
+|-------|-------------|
+| `order` | Launch position. Docker is always first. Same order = launch together in parallel. 0 = unassigned (launches after ordered ones). |
+| `delay_ms` | Sleep for N milliseconds before launching this service. |
+| `ready_check.cmd` | Shell command polled until it exits 0. Blocks until success or timeout. |
+| `ready_check.interval_ms` | Poll interval (default 2000). |
+| `ready_check.timeout_ms` | Give up after N ms (default 30000). |
+| `wait_for_compose_healthy` | Per-environment flag. Polls `docker compose ps --format json` until all containers are healthy. Timeout 120s. |
+
+`nook init` guides you through all of this interactively — confirm ordering, assign positions, choose delays or health checks between each pair, with the last delay value remembered as default.
+
 ### Environment variables
 
 Use `${VAR}` placeholders in connection strings, commands, and URLs. Resolution order:

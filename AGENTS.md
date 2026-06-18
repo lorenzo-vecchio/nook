@@ -73,6 +73,8 @@ cobra, survey/v2, fatih/color, yaml.v3, validator/v10, xdg, godotenv, testify
 - **Docker**: `docker compose -f <file> up -d` with optional `--profile`
 - **Command**: `sh -c` / `cmd /c`, fire-and-forget
 - Services launch in parallel via goroutines. Failures don't block others
+- **Launch ordering** (optional): `order`, `delay_ms`, `ready_check` fields. Docker always first. Same order = parallel. Sequential groups. Readiness checks poll a user command
+- VS Code terminals get `sleep N &&` prepended if the service has `delay_ms`
 
 ### TUI
 - All `Select` prompts have type-to-filter enabled (case-insensitive substring)
@@ -86,6 +88,8 @@ cobra, survey/v2, fatih/color, yaml.v3, validator/v10, xdg, godotenv, testify
 4. Validation with `validator/v10`
 5. Choose save location: Default (`~/.nook/workspaces`), Current directory, or pick from scan_paths
 6. If not default location, auto-trusts the directory
+7. Docker health check (optional)
+8. Launch ordering (optional) → position per service → delay/readiness check per transition
 
 ### Testing patterns
 - `mockPrompter` defined in `cmd/delete_test.go`, reused across all cmd tests
