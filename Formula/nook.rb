@@ -5,20 +5,20 @@
 class Nook < Formula
   desc "Workspace organizer CLI for developers"
   homepage "https://github.com/lorenzo-vecchio/nook"
-  version "0.1.4"
+  version "0.1.5"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.4/nook_0.1.4_darwin_amd64.tar.gz"
-      sha256 "41a85f96bd6a54a8afedb1bbba379fc10027660e1000863adcc66e87a426ffeb"
+      url "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.5/nook_0.1.5_darwin_amd64.tar.gz"
+      sha256 "bb0e7d5affbd71d5aedfed18337c274d7cff8cf4a04a55e74ba44ea4bf5f9b9c"
 
       define_method(:install) do
         bin.install "nook"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.4/nook_0.1.4_darwin_arm64.tar.gz"
-      sha256 "87a2a7942987422b2a01b4311a1d8f3616e8e52da1876e3285568e19bc8177a2"
+      url "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.5/nook_0.1.5_darwin_arm64.tar.gz"
+      sha256 "4a702004fcfe2e68205122648e56e236abbd0b44a5210cdca2fdf2c167fd7525"
 
       define_method(:install) do
         bin.install "nook"
@@ -28,15 +28,15 @@ class Nook < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.4/nook_0.1.4_linux_amd64.tar.gz"
-      sha256 "3cf5852c0243ee528b62cc89355d8771e07619aab456f4762d235570fdb8c68f"
+      url "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.5/nook_0.1.5_linux_amd64.tar.gz"
+      sha256 "8e49119194baf6081163040aa9a10cf5829338a43136d85772b31b63b4c5ec19"
       define_method(:install) do
         bin.install "nook"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.4/nook_0.1.4_linux_arm64.tar.gz"
-      sha256 "59999c474e596a51360e5228ba975736bd5d59286ce7b5a3621b4263ee470c25"
+      url "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.5/nook_0.1.5_linux_arm64.tar.gz"
+      sha256 "ac85f0211779fdddea5da036a13643686db7b283d6be1f57b902fc045b958dd1"
       define_method(:install) do
         bin.install "nook"
       end
