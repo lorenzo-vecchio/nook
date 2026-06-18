@@ -123,18 +123,14 @@ func TestChromeProvider_Launch(t *testing.T) {
 	err := p.Launch(context.Background(), svc, "", nil)
 	require.NoError(t, err)
 
-	require.Len(t, captures, 2)
+	require.Len(t, captures, 1)
 
 	if runtime.GOOS == "windows" {
 		assert.Equal(t, "cmd", captures[0].name)
-		assert.Equal(t, []string{"/c", "start", "chrome", "https://example.com"}, captures[0].args)
-		assert.Equal(t, "cmd", captures[1].name)
-		assert.Equal(t, []string{"/c", "start", "chrome", "https://test.com"}, captures[1].args)
+		assert.Equal(t, []string{"/c", "start", "chrome", "https://example.com", "https://test.com"}, captures[0].args)
 	} else {
 		assert.Equal(t, "/usr/bin/google-chrome", captures[0].name)
-		assert.Equal(t, []string{"--new-tab", "https://example.com"}, captures[0].args)
-		assert.Equal(t, "/usr/bin/google-chrome", captures[1].name)
-		assert.Equal(t, []string{"--new-tab", "https://test.com"}, captures[1].args)
+		assert.Equal(t, []string{"--new-tab", "https://example.com", "--new-tab", "https://test.com"}, captures[0].args)
 	}
 }
 
@@ -203,12 +199,18 @@ func TestChromeCommand(t *testing.T) {
 	ctx := context.Background()
 
 	if runtime.GOOS == "windows" {
-		cmd := chromeCommand(ctx, "", "https://example.com")
+		cmd := chromeCommand(ctx, "", []string{"https://example.com"})
 		assert.Equal(t, "cmd.exe", filepath.Base(cmd.Path))
 		assert.Equal(t, []string{"cmd", "/c", "start", "chrome", "https://example.com"}, cmd.Args)
 	} else {
-		cmd := chromeCommand(ctx, "/usr/bin/google-chrome", "https://example.com")
+		cmd := chromeCommand(ctx, "/usr/bin/google-chrome", []string{"https://example.com", "https://test.com"})
 		assert.Equal(t, "/usr/bin/google-chrome", cmd.Path)
-		assert.Equal(t, []string{"/usr/bin/google-chrome", "--new-tab", "https://example.com"}, cmd.Args)
+		assert.Equal(t, []string{"/usr/bin/google-chrome", "--new-tab", "https://example.com", "--new-tab", "https://test.com"}, cmd.Args)
 	}
+}
+
+func TestNormalizeURL(t *testing.T) {
+	assert.Equal(t, "http://localhost:8080", normalizeURL("localhost:8080"))
+	assert.Equal(t, "https://example.com", normalizeURL("https://example.com"))
+	assert.Equal(t, "http://example.com", normalizeURL("http://example.com"))
 }

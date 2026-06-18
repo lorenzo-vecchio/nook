@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/lorenzo-vecchio/nook/config"
 	"github.com/lorenzo-vecchio/nook/utils"
@@ -51,14 +52,17 @@ func (p *ChromeProvider) Launch(ctx context.Context, svc config.Service, baseDir
 		}
 	}
 
-	for _, url := range svc.URLs {
-		cmd := chromeCommand(ctx, p.detectedPath, url)
-		if err := cmd.Start(); err != nil {
-			return err
-		}
+	if len(svc.URLs) == 0 {
+		return nil
 	}
 
-	return nil
+	var normalized []string
+	for _, url := range svc.URLs {
+		normalized = append(normalized, normalizeURL(url))
+	}
+
+	cmd := chromeCommand(ctx, p.detectedPath, normalized)
+	return cmd.Start()
 }
 
 func chromeBinaryNames() []string {
@@ -92,11 +96,24 @@ func chromePaths() []string {
 	}
 }
 
-func chromeCommand(ctx context.Context, chromePath, url string) *exec.Cmd {
-	if utils.IsWindows() {
-		return execCommandContext(ctx, "cmd", "/c", "start", "chrome", url)
+func normalizeURL(url string) string {
+	if !strings.Contains(url, "://") {
+		return "http://" + url
 	}
-	return execCommandContext(ctx, chromePath, "--new-tab", url)
+	return url
+}
+
+func chromeCommand(ctx context.Context, chromePath string, urls []string) *exec.Cmd {
+	if utils.IsWindows() {
+		args := []string{"/c", "start", "chrome"}
+		args = append(args, urls...)
+		return execCommandContext(ctx, "cmd", args...)
+	}
+	args := []string{}
+	for _, url := range urls {
+		args = append(args, "--new-tab", url)
+	}
+	return execCommandContext(ctx, chromePath, args...)
 }
 
 func init() {
