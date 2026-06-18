@@ -81,12 +81,39 @@ func runInit(p tui.Prompter) error {
 		return err
 	}
 
-	home, err := os.UserHomeDir()
+	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 
-	wsDir := filepath.Join(home, ".nook", "workspaces", name)
+	locations := []string{"Default (~/.nook/workspaces)", "Current directory (" + cwd + ")", "Choose a scan path..."}
+	choice, err := p.Select("Where to save the workspace?", locations, locations[0])
+	if err != nil {
+		return err
+	}
+
+	var wsDir string
+	switch choice {
+	case locations[0]:
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return err
+		}
+		wsDir = filepath.Join(home, ".nook", "workspaces", name)
+	case locations[1]:
+		wsDir = cwd
+	case locations[2]:
+		cfg, err := config.LoadGlobalConfig()
+		if err != nil {
+			return err
+		}
+		picked, err := p.Select("Choose a scan path", cfg.ScanPaths, cfg.ScanPaths[0])
+		if err != nil {
+			return err
+		}
+		wsDir = filepath.Join(picked, name)
+	}
+
 	if err := utils.EnsureDir(wsDir); err != nil {
 		return err
 	}
