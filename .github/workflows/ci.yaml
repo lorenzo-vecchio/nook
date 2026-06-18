@@ -32,7 +32,7 @@ jobs:
         run: golangci-lint run
 
       - name: Test
-        run: go test ./... -v -cover -coverprofile=coverage.out
+        run: go test ./... -v -cover "-coverprofile=coverage.out"
 
       - name: Display coverage
-        run: go tool cover -func=coverage.out
+        run: go tool cover "-func=coverage.out"
