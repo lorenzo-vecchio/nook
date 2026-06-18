@@ -135,30 +135,31 @@ func configureService(p tui.Prompter, serviceType string) (*config.Service, erro
 	svc := &config.Service{
 		Provider: serviceTypeToProvider(serviceType),
 	}
+	label := tui.Dim("["+serviceType+"]") + " "
 
 	switch serviceType {
 	case "VS Code":
-		folder, err := p.Input("Project folder to open (e.g. ./backend or .)", "")
+		folder, err := p.Input(label+"Project folder to open (e.g. ./backend or .)", "")
 		if err != nil {
 			return nil, err
 		}
 		svc.Folder = folder
 
-		addTerminals, err := p.Confirm("Add terminals?", false)
+		addTerminals, err := p.Confirm(label+"Add terminals?", false)
 		if err != nil {
 			return nil, err
 		}
 		if addTerminals {
 			for {
-				name, err := p.Input("Terminal name", "")
+				name, err := p.Input(label+"Terminal name", "")
 				if err != nil {
 					return nil, err
 				}
-				dir, err := p.Input("Terminal directory", "")
+				dir, err := p.Input(label+"Terminal directory", "")
 				if err != nil {
 					return nil, err
 				}
-				cmdStr, err := p.Input("Terminal command (optional)", "")
+				cmdStr, err := p.Input(label+"Terminal command (optional)", "")
 				if err != nil {
 					return nil, err
 				}
@@ -168,7 +169,7 @@ func configureService(p tui.Prompter, serviceType string) (*config.Service, erro
 					Command:   cmdStr,
 				})
 
-				more, err := p.Confirm("Add another terminal?", false)
+				more, err := p.Confirm(label+"Add another terminal?", false)
 				if err != nil {
 					return nil, err
 				}
@@ -179,14 +180,14 @@ func configureService(p tui.Prompter, serviceType string) (*config.Service, erro
 		}
 
 	case "DBeaver":
-		conn, err := p.Input("Connection string", "")
+		conn, err := p.Input(label+"Connection string", "")
 		if err != nil {
 			return nil, err
 		}
 		svc.Connection = conn
 
 	case "Chrome":
-		urlsStr, err := p.Input("URLs (comma-separated)", "")
+		urlsStr, err := p.Input(label+"URLs (comma-separated)", "")
 		if err != nil {
 			return nil, err
 		}
@@ -199,26 +200,26 @@ func configureService(p tui.Prompter, serviceType string) (*config.Service, erro
 		}
 
 	case "Docker Compose":
-		file, err := p.Input("Docker Compose file path", "")
+		file, err := p.Input(label+"Compose file path", "")
 		if err != nil {
 			return nil, err
 		}
 		svc.File = file
 
-		profile, err := p.Input("Profile (optional)", "")
+		profile, err := p.Input(label+"Profile (optional)", "")
 		if err != nil {
 			return nil, err
 		}
 		svc.Profile = profile
 
 	case "Custom Command":
-		cmdStr, err := p.Input("Command to run", "")
+		cmdStr, err := p.Input(label+"Command to run", "")
 		if err != nil {
 			return nil, err
 		}
 		svc.Cmd = cmdStr
 
-		cwd, err := p.Input("Working directory (optional)", "")
+		cwd, err := p.Input(label+"Working directory (optional)", "")
 		if err != nil {
 			return nil, err
 		}
