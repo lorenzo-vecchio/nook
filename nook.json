@@ -1,19 +1,19 @@
 {
-    "version": "0.1.4",
+    "version": "0.1.5",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.4/nook_0.1.4_windows_amd64.zip",
+            "url": "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.5/nook_0.1.5_windows_amd64.zip",
             "bin": [
                 "nook.exe"
             ],
-            "hash": "67376422793b9aa2d1baa663e4ce983b5b56d7e9c1f28c15fbef7783792f2c10"
+            "hash": "57d2a2723ebec4ac11e37e26b0e51d207b27f992c3509ee95a3018100aeccab9"
         },
         "arm64": {
-            "url": "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.4/nook_0.1.4_windows_arm64.zip",
+            "url": "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.5/nook_0.1.5_windows_arm64.zip",
             "bin": [
                 "nook.exe"
             ],
-            "hash": "dcc84d6867102d41b9bd14bbf9f1a37d677e7bebff3bc690b3c7316dfa5b51a6"
+            "hash": "a65bb8fc0f5f0a50bed5973d485d1cb4a8c3a1ac423ebfce2d463ed49b72947a"
         }
     },
     "homepage": "https://github.com/lorenzo-vecchio/nook",
