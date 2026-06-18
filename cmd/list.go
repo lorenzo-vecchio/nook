@@ -12,7 +12,8 @@ import (
 
 func NewListCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
+		Use:     "list",
+		Aliases: []string{"ls"},
 		Short: "List all workspaces",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cfg, err := config.LoadGlobalConfig()
