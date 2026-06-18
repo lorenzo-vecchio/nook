@@ -45,13 +45,8 @@ func TestDBeaverProvider_Launch(t *testing.T) {
 	err := p.Launch(context.Background(), svc, "", nil)
 	require.NoError(t, err)
 
-	if runtime.GOOS == "darwin" {
-		assert.Equal(t, "open", capturedName)
-		assert.Equal(t, []string{"-a", "DBeaver", "--args", "-con", "jdbc:postgresql://localhost:5432/mydb?user=admin"}, capturedArgs)
-	} else {
-		assert.Contains(t, capturedName, "dbeaver")
-		assert.Equal(t, []string{"-con", "jdbc:postgresql://localhost:5432/mydb?user=admin"}, capturedArgs)
-	}
+	assert.Contains(t, capturedName, "dbeaver")
+	assert.Equal(t, []string{"-con", "jdbc:postgresql://localhost:5432/mydb?user=admin"}, capturedArgs)
 }
 
 func TestDBeaverProvider_FindPath(t *testing.T) {

@@ -187,7 +187,7 @@ func configureService(p tui.Prompter, serviceType string) (*config.Service, erro
 		}
 
 	case "DBeaver":
-		conn, err := p.Input(label+"Connection string", "")
+		conn, err := p.Input(label+"Connection string (e.g. jdbc:postgresql://${USER}:${PASS}@localhost:5432/db)", "")
 		if err != nil {
 			return nil, err
 		}

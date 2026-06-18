@@ -36,10 +36,6 @@ func (p *DBeaverProvider) Detect() (bool, error) {
 }
 
 func (p *DBeaverProvider) Launch(ctx context.Context, svc config.Service, baseDir string, envVars map[string]string) error {
-	if utils.IsMacOS() {
-		cmd := execCommandContext(ctx, "open", "-a", "DBeaver", "--args", "-con", svc.Connection)
-		return cmd.Start()
-	}
 	dbeaverPath := p.findDBeaverPath()
 	cmd := execCommandContext(ctx, dbeaverPath, "-con", svc.Connection)
 	return cmd.Start()
