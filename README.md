@@ -7,7 +7,8 @@ Workspace organizer CLI for developers. Launch all your project tools with a sin
 ### macOS / Linux
 
 ```bash
-brew install lorenzo-vecchio/nook/nook
+brew tap lorenzo-vecchio/nook https://github.com/lorenzo-vecchio/nook
+brew install nook
 ```
 
 ### Windows (Scoop)
