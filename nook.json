@@ -1,0 +1,21 @@
+{
+    "version": "0.1.1",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.1/nook_0.1.1_windows_amd64.zip",
+            "bin": [
+                "nook.exe"
+            ],
+            "hash": "c1d8bd722baded0f183e4ec7d3ad3acb0f1164054a5e48657dd5a79e006f77c3"
+        },
+        "arm64": {
+            "url": "https://github.com/lorenzo-vecchio/nook/releases/download/v0.1.1/nook_0.1.1_windows_arm64.zip",
+            "bin": [
+                "nook.exe"
+            ],
+            "hash": "9664a1ccf4836e57770f2f47e66eac20f8646fafd9607ce9428b74ebd8a1e259"
+        }
+    },
+    "homepage": "https://github.com/lorenzo-vecchio/nook",
+    "description": "Workspace organizer CLI for developers"
+}
