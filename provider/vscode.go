@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -65,7 +67,7 @@ func (p *VSCodeProvider) Launch(ctx context.Context, svc config.Service, baseDir
 		return cmd.Start()
 	}
 
-	wsPath, err := p.generateWorkspaceFile(folder, svc.Terminals, baseDir)
+	wsPath, err := p.generateWorkspaceFile(folder, svc.Terminals, baseDir, svc.DelayMs)
 	if err != nil {
 		return err
 	}
@@ -96,7 +98,7 @@ type codeWorkspaceTask struct {
 	ProblemMatcher []string `json:"problemMatcher"`
 }
 
-func (p *VSCodeProvider) generateWorkspaceFile(folder string, terminals []config.Terminal, baseDir string) (string, error) {
+func (p *VSCodeProvider) generateWorkspaceFile(folder string, terminals []config.Terminal, baseDir string, delayMs int) (string, error) {
 	wsDir := filepath.Join(baseDir, ".workspace")
 	if err := utils.EnsureDir(wsDir); err != nil {
 		return "", err
@@ -112,6 +114,27 @@ func (p *VSCodeProvider) generateWorkspaceFile(folder string, terminals []config
 		if t.Command != "" {
 			cmd += " && " + t.Command
 		}
+
+		if delayMs > 0 {
+			sleepSeconds := float64(delayMs) / 1000.0
+			if utils.IsWindows() {
+				timeout := int(math.Ceil(sleepSeconds))
+				sleepCmd := fmt.Sprintf("timeout /t %d /nobreak", timeout)
+				if t.Command != "" {
+					cmd = sleepCmd + " && " + cmd
+				} else {
+					cmd = sleepCmd
+				}
+			} else {
+				sleepCmd := fmt.Sprintf("sleep %.1f", sleepSeconds)
+				if t.Command != "" {
+					cmd = sleepCmd + " && " + cmd
+				} else {
+					cmd = sleepCmd
+				}
+			}
+		}
+
 		tasks = append(tasks, codeWorkspaceTask{
 			Label:          t.Name,
 			Type:           "shell",

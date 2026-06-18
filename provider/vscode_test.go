@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/lorenzo-vecchio/nook/config"
+	"github.com/lorenzo-vecchio/nook/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -105,6 +106,7 @@ func TestVSCodeProvider_GenerateWorkspaceFile(t *testing.T) {
 		projectDir,
 		svc.Terminals,
 		tmpDir,
+		0,
 	)
 	require.NoError(t, err)
 
@@ -161,7 +163,7 @@ func TestVSCodeProvider_GenerateWorkspaceFileEnsureDirFails(t *testing.T) {
 		{Name: "dev", Directory: ".", Command: "npm run dev"},
 	}
 
-	_, err = p.generateWorkspaceFile(projectDir, terminals, tmpDir)
+	_, err = p.generateWorkspaceFile(projectDir, terminals, tmpDir, 0)
 	assert.Error(t, err)
 }
 
@@ -214,7 +216,7 @@ func TestVSCodeProvider_GenerateWorkspaceFileWriteFails(t *testing.T) {
 		{Name: "dev", Directory: ".", Command: "npm run dev"},
 	}
 
-	_, err = p.generateWorkspaceFile(projectDir, terminals, tmpDir)
+	_, err = p.generateWorkspaceFile(projectDir, terminals, tmpDir, 0)
 	assert.Error(t, err)
 }
 
@@ -247,7 +249,7 @@ func TestVSCodeProvider_GenerateWorkspaceFileTerminalNoCommand(t *testing.T) {
 		{Name: "shell", Directory: "."},
 	}
 
-	wsPath, err := p.generateWorkspaceFile(projectDir, terminals, tmpDir)
+	wsPath, err := p.generateWorkspaceFile(projectDir, terminals, tmpDir, 0)
 	require.NoError(t, err)
 
 	data, err := os.ReadFile(wsPath)
@@ -259,4 +261,81 @@ func TestVSCodeProvider_GenerateWorkspaceFileTerminalNoCommand(t *testing.T) {
 
 	require.Len(t, ws.Tasks.Tasks, 1)
 	assert.Equal(t, "cd "+projectDir, ws.Tasks.Tasks[0].Command)
+}
+
+func TestVSCodeProvider_GenerateWorkspaceFile_WithDelay(t *testing.T) {
+	p := &VSCodeProvider{}
+	tmpDir := t.TempDir()
+	projectDir := filepath.Join(tmpDir, "myproject")
+
+	terminals := []config.Terminal{
+		{Name: "dev", Directory: ".", Command: "go run main.go"},
+	}
+
+	wsPath, err := p.generateWorkspaceFile(projectDir, terminals, tmpDir, 3000)
+	require.NoError(t, err)
+
+	data, err := os.ReadFile(wsPath)
+	require.NoError(t, err)
+
+	var ws codeWorkspace
+	err = json.Unmarshal(data, &ws)
+	require.NoError(t, err)
+
+	require.Len(t, ws.Tasks.Tasks, 1)
+	if utils.IsWindows() {
+		assert.Equal(t, "timeout /t 3 /nobreak && cd "+projectDir+" && go run main.go", ws.Tasks.Tasks[0].Command)
+	} else {
+		assert.Equal(t, "sleep 3.0 && cd "+projectDir+" && go run main.go", ws.Tasks.Tasks[0].Command)
+	}
+}
+
+func TestVSCodeProvider_GenerateWorkspaceFile_WithDelayNoCommand(t *testing.T) {
+	p := &VSCodeProvider{}
+	tmpDir := t.TempDir()
+	projectDir := filepath.Join(tmpDir, "myproject")
+
+	terminals := []config.Terminal{
+		{Name: "shell", Directory: "."},
+	}
+
+	wsPath, err := p.generateWorkspaceFile(projectDir, terminals, tmpDir, 2000)
+	require.NoError(t, err)
+
+	data, err := os.ReadFile(wsPath)
+	require.NoError(t, err)
+
+	var ws codeWorkspace
+	err = json.Unmarshal(data, &ws)
+	require.NoError(t, err)
+
+	require.Len(t, ws.Tasks.Tasks, 1)
+	if utils.IsWindows() {
+		assert.Equal(t, "timeout /t 2 /nobreak", ws.Tasks.Tasks[0].Command)
+	} else {
+		assert.Equal(t, "sleep 2.0", ws.Tasks.Tasks[0].Command)
+	}
+}
+
+func TestVSCodeProvider_GenerateWorkspaceFile_NoDelay(t *testing.T) {
+	p := &VSCodeProvider{}
+	tmpDir := t.TempDir()
+	projectDir := filepath.Join(tmpDir, "myproject")
+
+	terminals := []config.Terminal{
+		{Name: "dev", Directory: ".", Command: "npm run dev"},
+	}
+
+	wsPath, err := p.generateWorkspaceFile(projectDir, terminals, tmpDir, 0)
+	require.NoError(t, err)
+
+	data, err := os.ReadFile(wsPath)
+	require.NoError(t, err)
+
+	var ws codeWorkspace
+	err = json.Unmarshal(data, &ws)
+	require.NoError(t, err)
+
+	require.Len(t, ws.Tasks.Tasks, 1)
+	assert.Equal(t, "cd "+projectDir+" && npm run dev", ws.Tasks.Tasks[0].Command)
 }
