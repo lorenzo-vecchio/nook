@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/lorenzo-vecchio/nook/config"
@@ -80,6 +82,105 @@ func runInit(p tui.Prompter) error {
 
 	if err := config.Validate(ws); err != nil {
 		return err
+	}
+
+	for envName, env := range ws.Environments {
+		for _, svc := range env.Services {
+			if svc.Provider == "docker" {
+				ok, err := p.Confirm("Wait for Docker Compose containers to be healthy before continuing?", false)
+				if err != nil {
+					return err
+				}
+				if ok {
+					envCopy := ws.Environments[envName]
+					envCopy.WaitForComposeHealthy = true
+					ws.Environments[envName] = envCopy
+				}
+				break
+			}
+		}
+	}
+
+	doOrder, err := p.Confirm("Configure launch order?", false)
+	if err != nil {
+		return err
+	}
+	if doOrder {
+		tui.PrintHeader(os.Stdout, "Ordering")
+		fmt.Println("  Services with the same position launch together. Press Enter to skip.")
+		for envName, env := range ws.Environments {
+			for i, svc := range env.Services {
+				if svc.Provider == "docker" {
+					continue
+				}
+				orderStr, err := p.Input(
+					fmt.Sprintf("[%s] %s → position", serviceLabel(svc), serviceSummary(svc)),
+					"",
+				)
+				if err != nil {
+					return err
+				}
+				if orderStr != "" {
+					order, err := strconv.Atoi(orderStr)
+					if err != nil {
+						return err
+					}
+					envCopy := ws.Environments[envName]
+					envCopy.Services[i].Order = order
+					ws.Environments[envName] = envCopy
+				}
+			}
+		}
+
+		ordered := collectOrderedServices(ws.Environments)
+		if len(ordered) > 1 {
+			lastDelay := "500"
+			for i := 0; i < len(ordered)-1; i++ {
+				a, b := ordered[i], ordered[i+1]
+				label := tui.Dim(fmt.Sprintf("Between [%s] and [%s]", serviceLabel(a.svc), serviceLabel(b.svc)))
+				choice, err := p.Select(label,
+					[]string{"Nothing", "Delay", "Health check"},
+					"Nothing",
+				)
+				if err != nil {
+					return err
+				}
+				switch choice {
+				case "Delay":
+					delayStr, err := p.Input("Delay in ms?", lastDelay)
+					if err != nil {
+						return err
+					}
+					if delayStr != "" {
+						lastDelay = delayStr
+					}
+					delayMs, _ := strconv.Atoi(delayStr)
+					updateServiceField(ws.Environments, b.envName, b.svcIndex, func(svc *config.Service) {
+						svc.DelayMs = delayMs
+					})
+				case "Health check":
+					cmd, err := p.Input("Check command? (e.g. curl -sf http://localhost:3000/health)", "")
+					if err != nil {
+						return err
+					}
+					intervalStr, err := p.Input("Poll interval in ms?", "2000")
+					if err != nil {
+						return err
+					}
+					timeoutStr, err := p.Input("Timeout in ms?", "30000")
+					if err != nil {
+						return err
+					}
+					intervalMs, _ := strconv.Atoi(intervalStr)
+					timeoutMs, _ := strconv.Atoi(timeoutStr)
+					updateServiceField(ws.Environments, b.envName, b.svcIndex, func(svc *config.Service) {
+						svc.ReadyCheck = &config.ReadyCheck{
+							Cmd: cmd, IntervalMs: intervalMs, TimeoutMs: timeoutMs,
+						}
+					})
+				}
+			}
+		}
 	}
 
 	cwd, err := os.Getwd()
@@ -290,6 +391,85 @@ func configureService(p tui.Prompter, serviceType string) (*config.Service, erro
 	}
 
 	return svc, nil
+}
+
+func serviceLabel(svc config.Service) string {
+	switch svc.Provider {
+	case "vscode":
+		return "VS Code"
+	case "dbeaver":
+		return "DBeaver"
+	case "chrome":
+		return "Chrome"
+	case "docker":
+		return "Docker Compose"
+	case "command":
+		return "Command"
+	}
+	return ""
+}
+
+func serviceSummary(svc config.Service) string {
+	switch svc.Provider {
+	case "vscode":
+		return svc.Folder
+	case "dbeaver":
+		return svc.Connection
+	case "chrome":
+		if len(svc.URLs) > 0 {
+			return strings.Join(svc.URLs, ", ")
+		}
+	case "docker":
+		return svc.File
+	case "command":
+		return svc.Cmd
+	}
+	return ""
+}
+
+type orderedService struct {
+	envName  string
+	svcIndex int
+	svc      config.Service
+}
+
+func collectOrderedServices(envs map[string]config.Environment) []orderedService {
+	var result []orderedService
+	for envName, env := range envs {
+		for i, svc := range env.Services {
+			result = append(result, orderedService{
+				envName:  envName,
+				svcIndex: i,
+				svc:      svc,
+			})
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		aDocker := result[i].svc.Provider == "docker"
+		bDocker := result[j].svc.Provider == "docker"
+		if aDocker && !bDocker {
+			return true
+		}
+		if !aDocker && bDocker {
+			return false
+		}
+		aOrder := result[i].svc.Order
+		bOrder := result[j].svc.Order
+		if aOrder > 0 && bOrder == 0 {
+			return true
+		}
+		if aOrder == 0 && bOrder > 0 {
+			return false
+		}
+		return aOrder < bOrder
+	})
+	return result
+}
+
+func updateServiceField(envs map[string]config.Environment, envName string, svcIndex int, fn func(*config.Service)) {
+	env := envs[envName]
+	fn(&env.Services[svcIndex])
+	envs[envName] = env
 }
 
 func serviceTypeToProvider(s string) string {

@@ -215,6 +215,82 @@ func TestInitCmd_ValidationFailure(t *testing.T) {
 	assert.Contains(t, err.Error(), "validation failed")
 }
 
+func TestInitCmd_WithOrdering(t *testing.T) {
+	homeDir := t.TempDir()
+	setHomeEnv(t, homeDir)
+
+	inputCalls := 0
+	confirmCalls := 0
+	selectCalls := 0
+
+	mp := &mockPrompter{
+		inputFn: func(label, defaultVal string) (string, error) {
+			inputCalls++
+			vals := []string{
+				"ordering-ws",
+				"",
+				"dev",
+				"",
+				"docker-compose.yml",
+				"",
+				"/home/user/project",
+				"2",
+				"1000",
+			}
+			if inputCalls-1 < len(vals) {
+				return vals[inputCalls-1], nil
+			}
+			return "", nil
+		},
+		confirmFn: func(label string, defaultVal bool) (bool, error) {
+			confirmCalls++
+			vals := []bool{
+				false,
+				false,
+				true,
+				true,
+			}
+			if confirmCalls-1 < len(vals) {
+				return vals[confirmCalls-1], nil
+			}
+			return false, nil
+		},
+		selectFn: func(label string, options []string, defaultOption string) (string, error) {
+			selectCalls++
+			if selectCalls == 1 {
+				return "Delay", nil
+			}
+			return options[0], nil
+		},
+		multiSelectFn: func(label string, options, defaults []string) ([]string, error) {
+			return []string{"Docker Compose", "VS Code"}, nil
+		},
+	}
+
+	cmd := NewInitCmd(mp)
+	err := cmd.Execute()
+	require.NoError(t, err)
+
+	wsPath := filepath.Join(homeDir, ".nook", "workspaces", "ordering-ws", "workspace.yaml")
+	_, err = os.Stat(wsPath)
+	require.NoError(t, err)
+
+	ws, err := config.LoadWorkspace(wsPath)
+	require.NoError(t, err)
+	require.NotNil(t, ws)
+	assert.Equal(t, "ordering-ws", ws.Name)
+
+	env := ws.Environments["dev"]
+	require.Len(t, env.Services, 2)
+
+	assert.Equal(t, "docker", env.Services[0].Provider)
+	assert.True(t, env.WaitForComposeHealthy)
+
+	assert.Equal(t, "vscode", env.Services[1].Provider)
+	assert.Equal(t, 2, env.Services[1].Order)
+	assert.Equal(t, 1000, env.Services[1].DelayMs)
+}
+
 func TestInitCmd_DBeaverInteractive(t *testing.T) {
 	homeDir := t.TempDir()
 	setHomeEnv(t, homeDir)
