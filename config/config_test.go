@@ -52,6 +52,26 @@ func TestLoadGlobalConfig_ExistingConfig(t *testing.T) {
 	assert.Equal(t, []string{"/custom/path"}, cfg.ScanPaths)
 }
 
+func TestLoadGlobalConfig_EmptyScanPaths(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+
+	configDir := filepath.Join(dir, "nook")
+	err := os.MkdirAll(configDir, 0755)
+	require.NoError(t, err)
+
+	err = os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("scan_paths: []\n"), 0644)
+	require.NoError(t, err)
+
+	cfg, err := LoadGlobalConfig()
+	require.NoError(t, err)
+	require.NotNil(t, cfg)
+
+	home, err := os.UserHomeDir()
+	require.NoError(t, err)
+	assert.Equal(t, []string{filepath.Join(home, ".nook", "workspaces")}, cfg.ScanPaths)
+}
+
 func TestSaveGlobalConfig(t *testing.T) {
 	dir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", dir)

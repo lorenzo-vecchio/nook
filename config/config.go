@@ -51,6 +51,10 @@ func LoadGlobalConfig() (*GlobalConfig, error) {
 		cfg.ScanPaths[i] = expandTilde(p)
 	}
 
+	if len(cfg.ScanPaths) == 0 {
+		cfg.ScanPaths = []string{expandTilde("~/.nook/workspaces")}
+	}
+
 	return cfg, nil
 }
 

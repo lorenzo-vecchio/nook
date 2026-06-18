@@ -1,12 +1,18 @@
 package main
 
-import "github.com/lorenzo-vecchio/nook/cmd"
+import (
+	"fmt"
+	"os"
+
+	"github.com/lorenzo-vecchio/nook/cmd"
+)
 
 var version = "dev"
 
 func main() {
 	cmd.Version = version
 	if err := cmd.Execute(); err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
