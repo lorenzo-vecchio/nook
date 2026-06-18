@@ -111,7 +111,7 @@ func configureService(p tui.Prompter, serviceType string) (*config.Service, erro
 
 	switch serviceType {
 	case "VS Code":
-		folder, err := p.Input("Folder path", "")
+		folder, err := p.Input("Project folder to open (e.g. ./backend or .)", "")
 		if err != nil {
 			return nil, err
 		}
