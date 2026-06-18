@@ -187,11 +187,61 @@ func configureService(p tui.Prompter, serviceType string) (*config.Service, erro
 		}
 
 	case "DBeaver":
-		conn, err := p.Input(label+"Connection string (e.g. jdbc:postgresql://${USER}:${PASS}@localhost:5432/db)", "")
+		useInteractive, err := p.Confirm(label+"Build connection interactively?", true)
 		if err != nil {
 			return nil, err
 		}
-		svc.Connection = conn
+		if useInteractive {
+			driver, err := p.Input(label+"Driver (e.g. postgresql, mysql, sqlite)", "postgresql")
+			if err != nil {
+				return nil, err
+			}
+			host, err := p.Input(label+"Host", "localhost")
+			if err != nil {
+				return nil, err
+			}
+			port, err := p.Input(label+"Port", "5432")
+			if err != nil {
+				return nil, err
+			}
+			db, err := p.Input(label+"Database", "")
+			if err != nil {
+				return nil, err
+			}
+			user, err := p.Input(label+"User (use ${VAR} for env vars)", "")
+			if err != nil {
+				return nil, err
+			}
+			pass, err := p.Input(label+"Password (use ${VAR} for env vars)", "")
+			if err != nil {
+				return nil, err
+			}
+			extra, err := p.Input(label+"Extra params (optional, e.g. sslmode=disable)", "")
+			if err != nil {
+				return nil, err
+			}
+
+			parts := []string{"driver=" + driver, "host=" + host, "port=" + port}
+			if db != "" {
+				parts = append(parts, "database="+db)
+			}
+			if user != "" {
+				parts = append(parts, "user="+user)
+			}
+			if pass != "" {
+				parts = append(parts, "password="+pass)
+			}
+			if extra != "" {
+				parts = append(parts, extra)
+			}
+			svc.Connection = strings.Join(parts, "|")
+		} else {
+			conn, err := p.Input(label+"Connection string", "")
+			if err != nil {
+				return nil, err
+			}
+			svc.Connection = conn
+		}
 
 	case "Chrome":
 		urlsStr, err := p.Input(label+"URLs (comma-separated)", "")

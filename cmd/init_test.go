@@ -214,3 +214,57 @@ func TestInitCmd_ValidationFailure(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "validation failed")
 }
+
+func TestInitCmd_DBeaverInteractive(t *testing.T) {
+	homeDir := t.TempDir()
+	setHomeEnv(t, homeDir)
+
+	inputCalls := 0
+	confirmCalls := 0
+
+	mp := &mockPrompter{
+		inputFn: func(label, defaultVal string) (string, error) {
+			inputCalls++
+			vals := []string{
+				"dbeaver-test",
+				"",
+				"dev",
+				"",
+				"postgresql",
+				"db.example.com",
+				"5433",
+				"monitor",
+				"${DB_USER}",
+				"${DB_PASS}",
+				"sslmode=disable",
+			}
+			if inputCalls-1 < len(vals) {
+				return vals[inputCalls-1], nil
+			}
+			return "", nil
+		},
+		confirmFn: func(label string, defaultVal bool) (bool, error) {
+			confirmCalls++
+			if confirmCalls == 1 {
+				return true, nil
+			}
+			return false, nil
+		},
+		multiSelectFn: func(label string, options, defaults []string) ([]string, error) {
+			return []string{"DBeaver"}, nil
+		},
+	}
+
+	cmd := NewInitCmd(mp)
+	err := cmd.Execute()
+	require.NoError(t, err)
+
+	wsPath := filepath.Join(homeDir, ".nook", "workspaces", "dbeaver-test", "workspace.yaml")
+	ws, err := config.LoadWorkspace(wsPath)
+	require.NoError(t, err)
+
+	services := ws.Environments["dev"].Services
+	require.Len(t, services, 1)
+	assert.Equal(t, "dbeaver", services[0].Provider)
+	assert.Equal(t, "driver=postgresql|host=db.example.com|port=5433|database=monitor|user=${DB_USER}|password=${DB_PASS}|sslmode=disable", services[0].Connection)
+}
