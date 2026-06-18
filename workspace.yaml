@@ -1,0 +1,15 @@
+name: nook
+description: nook cli workspace
+environments:
+    dev:
+        env_file: ""
+        services:
+            - provider: vscode
+              folder: .
+              terminals:
+                - name: go
+                  directory: .
+                  command: ""
+            - provider: chrome
+              urls:
+                - https://github.com/lorenzo-vecchio/nook

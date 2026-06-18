@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "path": "/Users/lorenzovecchio/Desktop/REPOSITORY/nook"
+    }
+  ],
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "go",
+        "type": "shell",
+        "command": "cd /Users/lorenzovecchio/Desktop/REPOSITORY/nook",
+        "runOn": "folderOpen",
+        "problemMatcher": []
+      }
+    ]
+  }
+}
