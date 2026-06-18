@@ -3,7 +3,9 @@ package cmd
 import (
 	"context"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/lorenzo-vecchio/nook/config"
@@ -11,6 +13,26 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+var (
+	launchMu     sync.Mutex
+	launchRecord []string
+)
+
+type recordProvider struct {
+	name string
+}
+
+func (p *recordProvider) Name() string { return p.name }
+
+func (p *recordProvider) Detect() (bool, error) { return true, nil }
+
+func (p *recordProvider) Launch(_ context.Context, _ config.Service, _ string, _ map[string]string) error {
+	launchMu.Lock()
+	launchRecord = append(launchRecord, p.name)
+	launchMu.Unlock()
+	return nil
+}
 
 type mockProvider struct {
 	name         string
@@ -280,4 +302,73 @@ func TestOpenCmd_SelectEnvironment(t *testing.T) {
 	err = cmd.Execute()
 	require.NoError(t, err)
 	assert.True(t, mockProv.launchCalled)
+}
+
+func TestOpenCmd_WithOrdering(t *testing.T) {
+	homeDir := t.TempDir()
+	t.Setenv("HOME", homeDir)
+	t.Setenv("XDG_CONFIG_HOME", homeDir)
+
+	wsDir := filepath.Join(homeDir, ".nook", "workspaces", "ordered")
+	err := os.MkdirAll(wsDir, 0755)
+	require.NoError(t, err)
+
+	createTestWorkspace(t, wsDir, "ordered", map[string]config.Environment{
+		"dev": {
+			Services: []config.Service{
+				{Provider: "docker", File: "docker-compose.yml", Order: 1},
+				{Provider: "vscode", Folder: "/project", Order: 2, DelayMs: 500},
+				{Provider: "chrome", URLs: []string{"http://example.com"}, Order: 0},
+			},
+		},
+	})
+
+	cfg := &config.GlobalConfig{ScanPaths: []string{wsDir}}
+	require.NoError(t, config.SaveGlobalConfig(cfg))
+
+	launchRecord = nil
+
+	savedExec := execCommandContext
+	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
+		launchMu.Lock()
+		launchRecord = append(launchRecord, "docker")
+		launchMu.Unlock()
+		return exec.CommandContext(ctx, "/bin/echo", arg...)
+	}
+	t.Cleanup(func() { execCommandContext = savedExec })
+
+	provider.Register(&recordProvider{name: "docker"})
+	provider.Register(&recordProvider{name: "vscode"})
+	provider.Register(&recordProvider{name: "chrome"})
+
+	mp := &mockPrompter{
+		selectFn: func(label string, options []string, defaultOption string) (string, error) {
+			t.Fatal("unexpected Select call")
+			return "", nil
+		},
+		inputFn: func(label, defaultVal string) (string, error) {
+			return "", nil
+		},
+		confirmFn: func(label string, defaultVal bool) (bool, error) {
+			return true, nil
+		},
+		multiSelectFn: func(label string, options, defaults []string) ([]string, error) {
+			return nil, nil
+		},
+	}
+
+	cmd := NewOpenCmd(mp)
+	cmd.SetArgs([]string{"ordered", "--env", "dev"})
+	err = cmd.Execute()
+	require.NoError(t, err)
+
+	launchMu.Lock()
+	order := make([]string, len(launchRecord))
+	copy(order, launchRecord)
+	launchMu.Unlock()
+
+	require.Len(t, order, 3)
+	assert.Equal(t, "docker", order[0])
+	assert.Equal(t, "vscode", order[1])
+	assert.Equal(t, "chrome", order[2])
 }
