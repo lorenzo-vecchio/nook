@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"sync"
 	"testing"
 
@@ -371,4 +373,128 @@ func TestOpenCmd_WithOrdering(t *testing.T) {
 	assert.Equal(t, "docker", order[0])
 	assert.Equal(t, "vscode", order[1])
 	assert.Equal(t, "chrome", order[2])
+}
+
+func testEchoArgs(args ...string) *exec.Cmd {
+	if runtime.GOOS == "windows" {
+		return exec.Command("cmd", "/c", "echo", strings.Join(args, " "))
+	}
+	return exec.Command("/bin/echo", args...)
+}
+
+func testTrueCmd() *exec.Cmd {
+	if runtime.GOOS == "windows" {
+		return exec.Command("cmd", "/c", "cd")
+	}
+	return exec.Command("/usr/bin/true")
+}
+
+func testFalseCmd() *exec.Cmd {
+	if runtime.GOOS == "windows" {
+		return exec.Command("cmd", "/c", "exit", "1")
+	}
+	return exec.Command("/usr/bin/false")
+}
+
+func TestWaitForReady_Success(t *testing.T) {
+	saved := execCommandContext
+	failCount := 2
+	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
+		failCount--
+		if failCount >= 0 {
+			return testFalseCmd()
+		}
+		return testTrueCmd()
+	}
+	defer func() { execCommandContext = saved }()
+
+	waitForReady(context.Background(), config.Service{
+		Provider: "chrome",
+		ReadyCheck: &config.ReadyCheck{
+			Cmd: "true", IntervalMs: 10, TimeoutMs: 5000,
+		},
+	})
+}
+
+func TestWaitForReady_Defaults(t *testing.T) {
+	saved := execCommandContext
+	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
+		return testTrueCmd()
+	}
+	defer func() { execCommandContext = saved }()
+
+	waitForReady(context.Background(), config.Service{
+		Provider: "chrome",
+		ReadyCheck: &config.ReadyCheck{
+			Cmd: "true", IntervalMs: 0, TimeoutMs: 0,
+		},
+	})
+}
+
+func TestWaitDockerHealthy_AllHealthy(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("echo-based output mocking not supported on Windows")
+	}
+	saved := execCommandContext
+	jsonOut := `{"ID":"abc","Health":""}
+{"ID":"def","Health":"healthy"}
+{"ID":"ghi","Health":"healthy"}`
+	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
+		return testEchoArgs(jsonOut)
+	}
+	defer func() { execCommandContext = saved }()
+
+	err := waitDockerHealthy(context.Background())
+	require.NoError(t, err)
+}
+
+func TestWaitDockerHealthy_StartingThenHealthy(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("echo-based output mocking not supported on Windows")
+	}
+	callCount := 0
+	saved := execCommandContext
+	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
+		callCount++
+		if callCount <= 2 {
+			return testEchoArgs(`{"ID":"abc","Health":"starting"}`)
+		}
+		return testEchoArgs(`{"ID":"abc","Health":"healthy"}`)
+	}
+	defer func() { execCommandContext = saved }()
+
+	err := waitDockerHealthy(context.Background())
+	require.NoError(t, err)
+	assert.Greater(t, callCount, 1)
+}
+
+func TestWaitDockerHealthy_EmptyOutput(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("echo-based output mocking not supported on Windows")
+	}
+	saved := execCommandContext
+	execCommandContext = func(ctx context.Context, name string, arg ...string) *exec.Cmd {
+		return testEchoArgs("")
+	}
+	defer func() { execCommandContext = saved }()
+
+	err := waitDockerHealthy(context.Background())
+	require.NoError(t, err)
+}
+
+func TestServiceLabel(t *testing.T) {
+	assert.Equal(t, "Docker Compose", serviceLabel(config.Service{Provider: "docker"}))
+	assert.Equal(t, "VS Code", serviceLabel(config.Service{Provider: "vscode"}))
+	assert.Equal(t, "DBeaver", serviceLabel(config.Service{Provider: "dbeaver"}))
+	assert.Equal(t, "Chrome", serviceLabel(config.Service{Provider: "chrome"}))
+	assert.Equal(t, "Command", serviceLabel(config.Service{Provider: "command"}))
+	assert.Equal(t, "", serviceLabel(config.Service{Provider: "???"}))
+}
+
+func TestServiceSummary(t *testing.T) {
+	assert.NotEmpty(t, serviceSummary(config.Service{Provider: "vscode", Folder: "/proj"}))
+	assert.NotEmpty(t, serviceSummary(config.Service{Provider: "docker", File: "dc.yml"}))
+	assert.NotEmpty(t, serviceSummary(config.Service{Provider: "command", Cmd: "echo"}))
+	assert.NotEmpty(t, serviceSummary(config.Service{Provider: "dbeaver", Connection: "conn"}))
+	assert.NotEmpty(t, serviceSummary(config.Service{Provider: "chrome", URLs: []string{"url"}}))
 }
