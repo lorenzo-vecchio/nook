@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/lorenzo-vecchio/nook/config"
+	"github.com/lorenzo-vecchio/nook/detector"
 	"github.com/lorenzo-vecchio/nook/tui"
 	"github.com/lorenzo-vecchio/nook/utils"
 	"github.com/spf13/cobra"
@@ -125,6 +126,12 @@ func runInit(p tui.Prompter) error {
 
 	if err := utils.EnsureDir(filepath.Join(wsDir, ".workspace")); err != nil {
 		return err
+	}
+
+	if choice != locations[0] {
+		if err := detector.TrustPath(wsDir); err != nil {
+			return err
+		}
 	}
 
 	tui.PrintSuccess(os.Stdout, fmt.Sprintf("Workspace %q created at %s", name, wsPath))
