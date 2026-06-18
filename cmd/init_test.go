@@ -230,7 +230,6 @@ func TestInitCmd_DBeaverInteractive(t *testing.T) {
 				"",
 				"dev",
 				"",
-				"postgresql",
 				"db.example.com",
 				"5433",
 				"monitor",
@@ -242,6 +241,9 @@ func TestInitCmd_DBeaverInteractive(t *testing.T) {
 				return vals[inputCalls-1], nil
 			}
 			return "", nil
+		},
+		selectFn: func(label string, options []string, defaultOption string) (string, error) {
+			return options[0], nil
 		},
 		confirmFn: func(label string, defaultVal bool) (bool, error) {
 			confirmCalls++

@@ -192,7 +192,13 @@ func configureService(p tui.Prompter, serviceType string) (*config.Service, erro
 			return nil, err
 		}
 		if useInteractive {
-			driver, err := p.Input(label+"Driver (e.g. postgresql, mysql, sqlite)", "postgresql")
+			drivers := []string{
+				"postgresql", "mysql", "mariadb", "sqlite",
+				"clickhouse", "oracle", "sqlserver", "db2",
+				"firebird", "h2", "derby", "mongodb",
+				"cassandra", "redis", "vertica", "bigquery",
+			}
+			driver, err := p.Select(label+"Driver", drivers, "postgresql")
 			if err != nil {
 				return nil, err
 			}

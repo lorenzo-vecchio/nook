@@ -1,6 +1,10 @@
 package tui
 
-import "github.com/AlecAivazis/survey/v2"
+import (
+	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
+)
 
 type Prompter interface {
 	Select(label string, options []string, defaultOption string) (string, error)
@@ -21,6 +25,10 @@ func (p *SurveyPrompter) Select(label string, options []string, defaultOption st
 		Message: label,
 		Options: options,
 		Default: defaultOption,
+		Filter: func(filter, value string, index int) bool {
+			lowerFilter := strings.ToLower(filter)
+			return strings.Contains(strings.ToLower(value), lowerFilter)
+		},
 	}
 	err := survey.AskOne(prompt, &result)
 	return result, err
