@@ -16,7 +16,10 @@ import (
 var editPrompter = tui.NewPrompter()
 
 func NewEditCmd() *cobra.Command {
-	return &cobra.Command{
+	var newName string
+	var newDesc string
+
+	cmd := &cobra.Command{
 		Use:   "edit [name]",
 		Short: "Edit a workspace configuration",
 		Args:  cobra.MaximumNArgs(1),
@@ -65,6 +68,27 @@ func NewEditCmd() *cobra.Command {
 				return fmt.Errorf("workspace %q not found", workspaceName)
 			}
 
+			if newName != "" || newDesc != "" {
+				ws, err := config.LoadWorkspace(yamlPath)
+				if err != nil {
+					return err
+				}
+				if newName != "" {
+					ws.Name = newName
+				}
+				if newDesc != "" {
+					ws.Description = newDesc
+				}
+				if err := config.Validate(ws); err != nil {
+					return err
+				}
+				if err := config.SaveWorkspace(ws, yamlPath); err != nil {
+					return err
+				}
+				tui.PrintSuccess(os.Stdout, fmt.Sprintf("Workspace %q updated", workspaceName))
+				return nil
+			}
+
 			editor := utils.DefaultEditor()
 			editorCmd := exec.Command(editor, yamlPath)
 			editorCmd.Stdin = os.Stdin
@@ -73,4 +97,9 @@ func NewEditCmd() *cobra.Command {
 			return editorCmd.Run()
 		},
 	}
+
+	cmd.Flags().StringVar(&newName, "name", "", "Set workspace name")
+	cmd.Flags().StringVar(&newDesc, "description", "", "Set workspace description")
+
+	return cmd
 }
